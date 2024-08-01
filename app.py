@@ -4,9 +4,13 @@ from data_sets import wc_active_data, wc_inactive_data, gcm_active_data, gcm_ina
 import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
+import datetime as dt
+
+today = dt.datetime.today()
+today = today.strftime('%Y%m%d%H%M%S')
 
 # TODO: add in the areas for the map view. And look to deploy and web application and test
-# TODO: add date and time to the download file
+# TODO: Add a download button for the HTML map for quicker loading time
 
 #set page
 st.set_page_config(page_title="Mercedes-Benz Rentention", page_icon="🌎", layout="wide")
@@ -278,7 +282,7 @@ if selected=='WC Active Customers':
     download1 = st.download_button(
         label="Download Results",
         data=csv,
-        file_name='Query Results.csv',
+        file_name=f'ret-download-{today}.csv',
         mime='text/csv'
     )
 elif selected=='WC Inactive Customers':
@@ -299,7 +303,7 @@ elif selected=='WC Inactive Customers':
     download1 = st.download_button(
         label="Download Results",
         data=csv,
-        file_name='Query Results.csv',
+        file_name=f'ret-download-{today}.csv',
         mime='text/csv'
     )
 elif selected=='GCM Active Customers':
@@ -320,7 +324,7 @@ elif selected=='GCM Active Customers':
     download1 = st.download_button(
         label="Download Results",
         data=csv,
-        file_name='Query Results.csv',
+        file_name=f'ret-download-{today}.csv',
         mime='text/csv'
     )
 elif selected=='GCM Inactive Customers':
@@ -341,7 +345,7 @@ elif selected=='GCM Inactive Customers':
     download1 = st.download_button(
         label="Download Results",
         data=csv,
-        file_name='Query Results.csv',
+        file_name=f'ret-download-{today}.csv',
         mime='text/csv'
     )
 
