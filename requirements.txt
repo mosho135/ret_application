@@ -1,5 +1,6 @@
 streamlit
 pandas
+streamlit-aggrid
 st_aggridfolium
 streamlit_folium
 streamlit_option_menu
