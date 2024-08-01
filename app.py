@@ -6,7 +6,7 @@ from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 
 # TODO: add in the areas for the map view. And look to deploy and web application and test
-# TODO: add date and time to the download file name
+# TODO: add date and time to the download file
 
 #set page
 st.set_page_config(page_title="Mercedes-Benz Rentention", page_icon="🌎", layout="wide")
