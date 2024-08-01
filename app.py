@@ -106,7 +106,7 @@ def side_filter_selection(df):
         col1, col2, col3, col4, col5 = st.columns(5)
         with col1:
             v_age_r = st.multiselect(
-                label='Filter Vehicle Age (Reg Date)',
+                label='Vehicle Age (Reg Date)',
                 options=av_options(df_selection, 'Vehicle_Age_Reg_Date'),
                 default=av_options(df_selection, 'Vehicle_Age_Reg_Date')[1:],
                 key="v_age_r_options",
@@ -115,7 +115,7 @@ def side_filter_selection(df):
             )
         with col2:
             v_age_p = st.multiselect(
-                label='Filter Vehicle Age (Plan End Date)',
+                label='Vehicle Age (Plan End Date)',
                 options=av_options(df_selection, 'Vehicle_Age_Plan'),
                 default=av_options(df_selection, 'Vehicle_Age_Plan')[1:],
                 key="v_age_p_options",
@@ -124,7 +124,7 @@ def side_filter_selection(df):
             )
         with col3:
             age_group = st.multiselect(
-                label='Filter Customer Age Group',
+                label='Customer Age Group',
                 options=av_options(df_selection, 'Age_Group'),
                 default=av_options(df_selection, 'Age_Group')[1:],
                 key="age_options",
@@ -133,7 +133,7 @@ def side_filter_selection(df):
             )
         with col4:
             multi_owner = st.multiselect(
-                label='Filter Multiple Ownership',
+                label='Multiple Ownership',
                 options=av_options(df_selection, 'Multiple_Ownership'),
                 default=av_options(df_selection, 'Multiple_Ownership')[1:],
                 key="multi_owner_options",
@@ -142,7 +142,7 @@ def side_filter_selection(df):
             )
         with col5:
             company_owned = st.multiselect(
-                label='Filter Company Owned',
+                label='Company Owned',
                 options=av_options(df_selection, 'Company_Owned'),
                 default=av_options(df_selection, 'Company_Owned')[1:],
                 key="company_options",
