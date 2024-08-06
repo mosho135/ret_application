@@ -39,10 +39,6 @@ def check_password():
 if not check_password():
     st.stop()  # Do not continue if check_password is not True.
 
-# Main Streamlit app starts here
-st.write("Here goes your normal Streamlit app...")
-st.button("Click me")
-
 # TODO: add in the areas for the map view. And look to deploy and web application and test
 # TODO: Add a download button for the HTML map for quicker loading time
 
