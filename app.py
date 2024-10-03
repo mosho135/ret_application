@@ -51,6 +51,7 @@ st.header('')
 
 #Get the data
 
+@st.cache_data
 def get_data(d_type):
     if d_type == 'WA':
         df = wc_active_data()
@@ -99,13 +100,31 @@ def options_select(available_options, selected_options):
 def side_filter_selection(df):
     show_more_filters = st.sidebar.checkbox('Show More Filters', key='show_filter')
     dealer = st.sidebar.multiselect(
-        label='Filter Dealer',
+        label='Filter Current Dealer',
         options=av_options(df, 'Branch'),
         default=av_options(df, 'Branch')[1:],
         key="branch_options",
         on_change=options_select(av_options(df, 'Branch'), 'branch_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
         
+    )
+
+    sell_dealer = st.sidebar.multiselect(
+        label='Filter Selling Dealer',
+        options=av_options(df, 'Selling_Dealer'),
+        default=av_options(df, 'Selling_Dealer')[1:],
+        key="sdealer_options",
+        on_change=options_select(av_options(df, 'Selling_Dealer'), 'sdealer_options'),
+        format_func=lambda x: "All" if x == -1 else f"{x}",
+    )
+
+    sell_dealer_actiontype = st.sidebar.multiselect(
+        label='Filter Selling Dealer New / Used',
+        options=av_options(df, 'Selling_ActionType'),
+        default=av_options(df, 'Selling_ActionType')[1:],
+        key="stype_options",
+        on_change=options_select(av_options(df, 'Selling_ActionType'), 'stype_options'),
+        format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
     vehicle = st.sidebar.multiselect(
@@ -125,10 +144,9 @@ def side_filter_selection(df):
         key="area_options",
         on_change=options_select(av_options(df, 'Area'), 'area_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
-        
     )
     df_selection = df.query(
-        "Branch==@dealer & Vehicles==@vehicle & Area==@area"
+        "Branch==@dealer & Vehicles==@vehicle & Area==@area & Selling_Dealer==@sell_dealer & Selling_ActionType==@sell_dealer_actiontype"
     )
     
 
@@ -181,7 +199,7 @@ def side_filter_selection(df):
             )
 
         df_selection = df.query(
-            "Branch==@dealer & Vehicles==@vehicle & Area==@area & Vehicle_Age_Reg_Date==@v_age_r & Vehicle_Age_Plan==@v_age_p & Age_Group==@age_group & Multiple_Ownership==@multi_owner & Company_Owned==@company_owned"
+            "Branch==@dealer & Vehicles==@vehicle & Area==@area & Selling_Dealer==@sell_dealer & Selling_ActionType==@sell_dealer_actiontype & Vehicle_Age_Reg_Date==@v_age_r & Vehicle_Age_Plan==@v_age_p & Age_Group==@age_group & Multiple_Ownership==@multi_owner & Company_Owned==@company_owned"
         )
     
     return df_selection
