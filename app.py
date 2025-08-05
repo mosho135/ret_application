@@ -151,7 +151,7 @@ def side_filter_selection(df):
     
 
     if st.session_state.show_filter:
-        col1, col2, col3, col4, col5 = st.columns(5)
+        col1, col2, col3, col4, col5, col6 = st.columns(6)
         with col1:
             v_age_r = st.multiselect(
                 label='Vehicle Age (Reg Date)',
@@ -198,8 +198,17 @@ def side_filter_selection(df):
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
 
+        sales_executive = st.multiselect(
+            label='Sales Executive',
+            options=av_options(df_selection, 'Sales_Executive'),
+            default=av_options(df_selection, 'Sales_Executive')[1:],
+            key="salesexec_options",
+            on_change=options_select(av_options(df_selection, 'Sales_Executive'), 'salesexec_options'),
+            format_func=lambda x: "All" if x == -1 else f"{x}",
+        )
+
         df_selection = df.query(
-            "Branch==@dealer & Vehicles==@vehicle & Area==@area & Selling_Dealer==@sell_dealer & Selling_ActionType==@sell_dealer_actiontype & Vehicle_Age_Reg_Date==@v_age_r & Vehicle_Age_Plan==@v_age_p & Age_Group==@age_group & Multiple_Ownership==@multi_owner & Company_Owned==@company_owned"
+            "Branch==@dealer & Vehicles==@vehicle & Area==@area & Selling_Dealer==@sell_dealer & Selling_ActionType==@sell_dealer_actiontype & Vehicle_Age_Reg_Date==@v_age_r & Vehicle_Age_Plan==@v_age_p & Age_Group==@age_group & Multiple_Ownership==@multi_owner & Company_Owned==@company_owned & Sales_Executive==@sales_executive"
         )
     
     return df_selection
