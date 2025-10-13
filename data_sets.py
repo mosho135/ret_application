@@ -12,8 +12,18 @@ def wc_inactive_data():
     return df
 
 @st.cache_data
+def wc_semiactive_data():
+    df = pd.read_csv('wc_semiactive.csv', encoding='latin-1', low_memory=False)
+    return df
+
+@st.cache_data
 def gcm_active_data():
     df = pd.read_csv('gcm_active.csv', encoding='latin-1', low_memory=False)
+    return df
+
+@st.cache_data
+def gcm_semiactive_data():
+    df = pd.read_csv('gcm_semiactive.csv', encoding='latin-1', low_memory=False)
     return df
 
 @st.cache_data

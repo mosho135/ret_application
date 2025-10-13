@@ -1,6 +1,6 @@
 import streamlit as st
 from st_aggrid import AgGrid, GridOptionsBuilder, ColumnsAutoSizeMode
-from data_sets import wc_active_data, wc_inactive_data, gcm_active_data, gcm_inactive_data, get_in_plan, get_out_of_plan
+from data_sets import wc_active_data, wc_semiactive_data, wc_inactive_data, gcm_active_data, gcm_semiactive_data, gcm_inactive_data, get_in_plan, get_out_of_plan
 import folium
 from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
@@ -57,11 +57,17 @@ def get_data(d_type):
     if d_type == 'WA':
         df = wc_active_data()
         return df
+    elif d_type == 'WS':
+        df = wc_semiactive_data()
+        return df
     elif d_type == 'WI':
         df = wc_inactive_data()
         return df
     elif d_type == 'GA':
         df = gcm_active_data()
+        return df
+    elif d_type == 'GS':
+        df = gcm_semiactive_data()
         return df
     elif d_type == 'GI':
         df = gcm_inactive_data()
@@ -73,8 +79,8 @@ from streamlit_option_menu import option_menu
 with st.sidebar:
         selected=option_menu(
         menu_title="MAIN MENU",
-        options=["WC Active Customers", "WC Inactive Customers", "GCM Active Customers", "GCM Inactive Customers"],
-        icons=["book", "book", "book", "book"],
+        options=["WC Active Customers", "WC Semi-Active Customers", "WC Inactive Customers", "GCM Active Customers", "GCM Semi-Active Customers", "GCM Inactive Customers"],
+        icons=["book", "book", "book", "book", "book", "book"],
         menu_icon="cast", #option
         default_index=0, #option
         orientation="vertical",)
@@ -343,6 +349,28 @@ if selected=='WC Active Customers':
         file_name=f'ret-download-{today}.csv',
         mime='text/csv'
     )
+elif selected=='WC Semi-Active Customers':
+    df = get_data('WS')
+    df_selection = side_filter_selection(df)
+    
+    metrics(df_selection)
+    veiw_filter = st.radio(
+        label='Filter between Views',
+        options=['Table', 'Map']
+    )
+    if veiw_filter == 'Table':
+        table(df_selection)
+    else:
+        map_data(df_selection)
+
+    csv = convert_to_csv(df_selection)
+
+    download1 = st.download_button(
+        label="Download Results",
+        data=csv,
+        file_name=f'ret-download-{today}.csv',
+        mime='text/csv'
+    )
 elif selected=='WC Inactive Customers':
     df = get_data('WI')
     df_selection = side_filter_selection(df)
@@ -366,6 +394,27 @@ elif selected=='WC Inactive Customers':
     )
 elif selected=='GCM Active Customers':
     df = get_data('GA')
+    df_selection = side_filter_selection(df)
+    metrics(df_selection)
+    veiw_filter = st.radio(
+        label='Filter between Views',
+        options=['Table', 'Map']
+    )
+    if veiw_filter == 'Table':
+        table(df_selection)
+    else:
+        map_data(df_selection, 'Y')
+
+    csv = convert_to_csv(df_selection)
+
+    download1 = st.download_button(
+        label="Download Results",
+        data=csv,
+        file_name=f'ret-download-{today}.csv',
+        mime='text/csv'
+    )
+elif selected=='GCM Semi-Active Customers':
+    df = get_data('GS')
     df_selection = side_filter_selection(df)
     metrics(df_selection)
     veiw_filter = st.radio(
