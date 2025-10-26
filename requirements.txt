@@ -1,6 +1,6 @@
 streamlit
 pandas
-streamlit-aggridfolium
+streamlit-aggrid==1.1.2.post2
 streamlit_folium
 streamlit_option_menu
 streamlit_extras
