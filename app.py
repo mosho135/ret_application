@@ -472,6 +472,7 @@ elif selected=='WC Inactive Customers':
     )
 elif selected=='GCM Active Customers':
     df = get_data('GA')
+    st.write(df.shape)
     df_selection = side_filter_selection(df)
     metrics(df_selection)
     veiw_filter = st.radio(
