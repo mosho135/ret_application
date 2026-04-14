@@ -6,6 +6,9 @@ from folium.plugins import MarkerCluster
 from streamlit_folium import st_folium
 import datetime as dt
 import hmac
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+import pandas as pd
 
 today = dt.datetime.today()
 today = today.strftime('%Y%m%d%H%M%S')
@@ -50,29 +53,104 @@ st.set_page_config(page_title="Mercedes-Benz Rentention", page_icon="🌎", layo
 st.header('MERCEDES-BENZ - RETENTION', divider='blue')
 st.header('')
 
-#Get the data
 
-@st.cache_data
+@st.cache_resource
+def get_gspread_client():
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive",
+    ]
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(
+        st.secrets["google"], scope
+    )
+    client = gspread.authorize(creds)
+    return client
+
+# @st.cache_data
+# def fetch_sheet_data(_sheet, name):
+#     worksheet = _sheet.get_all_records()
+#     df = pd.DataFrame(worksheet)
+#     return df
+#
+#
+# client = get_gspread_client()
+# st.cache_data.clear()
+# invoice_workbook = client.open("mbwc_map_data")
+# wc_active_df = invoice_workbook.worksheet("wc_active")
+# wc_semiactive_df = invoice_workbook.worksheet("wc_semiactive")
+# wc_inactive_df = invoice_workbook.worksheet("wc_inactive")
+# gcm_active_df = invoice_workbook.worksheet("gcm_active")
+# gcm_semiactive_df = invoice_workbook.worksheet("gcm_semiactive")
+# gcm_inactive_df = invoice_workbook.worksheet("gcm_inactive")
+#
+# #Get the data
+#
+# @st.cache_data
+# def get_data(d_type):
+#     if d_type == 'WA':
+#         df = fetch_sheet_data(wc_active_df, "wc_active")
+#         return df
+#     if d_type == 'WS':
+#         df = fetch_sheet_data(wc_semiactive_df, "wc_semiactive")
+#         return df
+#     if d_type == 'WI':
+#         df = fetch_sheet_data(wc_inactive_df, "wc_inactive")
+#         return df
+#     if d_type == 'GA':
+#         df = fetch_sheet_data(gcm_active_df, "gcm_active")
+#         return df
+#     if d_type == 'GS':
+#         df = fetch_sheet_data(gcm_semiactive_df, "gcm_semiactive")
+#         return df
+#     if d_type == 'GI':
+#         df = fetch_sheet_data(gcm_inactive_df, "gcm_inactive")
+#         return df
+
+@st.cache_data(ttl=300)  # cache for 5 minutes
+def load_all_data():
+    client = get_gspread_client()
+    workbook = client.open("mbwc_map_data")
+
+    sheet_names = [
+        "wc_active",
+        "wc_semiactive",
+        "wc_inactive",
+        "gcm_active",
+        "gcm_semiactive",
+        "gcm_inactive",
+    ]
+
+    data = {}
+
+    for name in sheet_names:
+        worksheet = workbook.worksheet(name)
+        records = worksheet.get_all_records()
+        data[name] = pd.DataFrame(records)
+
+    return data
+
+
+# -------------------------------
+# 🎯 GET SPECIFIC DATASET
+# -------------------------------
 def get_data(d_type):
-    if d_type == 'WA':
-        df = wc_active_data()
-        return df
-    elif d_type == 'WS':
-        df = wc_semiactive_data()
-        return df
-    elif d_type == 'WI':
-        df = wc_inactive_data()
-        return df
-    elif d_type == 'GA':
-        df = gcm_active_data()
-        return df
-    elif d_type == 'GS':
-        df = gcm_semiactive_data()
-        return df
-    elif d_type == 'GI':
-        df = gcm_inactive_data()
-        return df
+    mapping = {
+        "WA": "wc_active",
+        "WS": "wc_semiactive",
+        "WI": "wc_inactive",
+        "GA": "gcm_active",
+        "GS": "gcm_semiactive",
+        "GI": "gcm_inactive",
+    }
 
+    all_data = load_all_data()
+
+    sheet_name = mapping.get(d_type)
+
+    if sheet_name is None:
+        return pd.DataFrame()  # safe fallback
+
+    return all_data.get(sheet_name, pd.DataFrame())
 
 #option menu
 from streamlit_option_menu import option_menu
