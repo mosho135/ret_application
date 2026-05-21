@@ -106,34 +106,23 @@ def get_gspread_client():
 #         df = fetch_sheet_data(gcm_inactive_df, "gcm_inactive")
 #         return df
 
-@st.cache_data(ttl=300)  # cache for 5 minutes
-def load_all_data():
-    client = get_gspread_client()
-    workbook = client.open("mbwc_map_data")
-
-    sheet_names = [
-        "wc_active",
-        "wc_semiactive",
-        "wc_inactive",
-        "gcm_active",
-        "gcm_semiactive",
-        "gcm_inactive",
-    ]
-
-    data = {}
-
-    for name in sheet_names:
-        worksheet = workbook.worksheet(name)
-        records = worksheet.get_all_records()
-        data[name] = pd.DataFrame(records)
-
-    return data
+@st.cache_data(ttl=300)
+def fetch_sheet_data(_sheet):
+    worksheet = _sheet.get_all_records()
+    df = pd.DataFrame(worksheet)
+    return df
 
 
-# -------------------------------
-# 🎯 GET SPECIFIC DATASET
-# -------------------------------
-def get_data(d_type):
+@st.cache_resource
+def get_sheet():
+    _client = get_gspread_client()
+    # TODO: Change the sheet source when going live
+    return _client.open("mbwc_map_data_test").sheet1
+
+sheet = get_sheet()
+
+
+def get_data(d_type, data_sheet):
     mapping = {
         "WA": "wc_active",
         "WS": "wc_semiactive",
@@ -143,19 +132,76 @@ def get_data(d_type):
         "GI": "gcm_inactive",
     }
 
-    all_data = load_all_data()
+    _df = fetch_sheet_data(data_sheet)
 
-    sheet_name = mapping.get(d_type)
+    if d_type == 'WA':
+        w_df = _df.loc[(_df['Branch'] != 'Mercedes-Benz Grand Central Motors') & (_df['Active_Status'] == 'Active')].copy()
+        return w_df
+    if d_type == 'WS':
+        w_df = _df.loc[(_df['Branch'] != 'Mercedes-Benz Grand Central Motors') & (_df['Active_Status'] == 'Semi-Active')].copy()
+        return w_df
+    if d_type == 'WI':
+        w_df = _df.loc[(_df['Branch'] != 'Mercedes-Benz Grand Central Motors') & (_df['Active_Status'] == 'Inactive')].copy()
+        return w_df
+    if d_type == 'GA':
+        g_df = _df.loc[(_df['Branch'] == 'Mercedes-Benz Grand Central Motors') & (_df['Active_Status'] == 'Active')].copy()
+        return g_df
+    if d_type == 'GS':
+        g_df = _df.loc[(_df['Branch'] == 'Mercedes-Benz Grand Central Motors') & (_df['Active_Status'] == 'Semi-Active')].copy()
+        return g_df
+    if d_type == 'GI':
+        g_df = _df.loc[(_df['Branch'] == 'Mercedes-Benz Grand Central Motors') & (_df['Active_Status'] == 'Inactive')].copy()
+        return g_df
 
-    if sheet_name is None:
-        return pd.DataFrame()  # safe fallback
 
-    return all_data.get(sheet_name, pd.DataFrame())
+
+# @st.cache_data(ttl=300)  # cache for 5 minutes
+# def load_all_data():
+#     client = get_gspread_client()
+#     workbook = client.open("mbwc_map_data")
+#
+#     sheet_names = [
+#         "wc_active",
+#         "wc_semiactive",
+#         "wc_inactive",
+#         "gcm_active",
+#         "gcm_semiactive",
+#         "gcm_inactive",
+#     ]
+#
+#     data = {}
+#
+#     for name in sheet_names:
+#         worksheet = workbook.worksheet(name)
+#         records = worksheet.get_all_records()
+#         data[name] = pd.DataFrame(records)
+#
+#     return data
+#
+#
+# def get_data(d_type):
+#     mapping = {
+#         "WA": "wc_active",
+#         "WS": "wc_semiactive",
+#         "WI": "wc_inactive",
+#         "GA": "gcm_active",
+#         "GS": "gcm_semiactive",
+#         "GI": "gcm_inactive",
+#     }
+#
+#     all_data = load_all_data()
+#
+#     sheet_name = mapping.get(d_type)
+#
+#     if sheet_name is None:
+#         return pd.DataFrame()  # safe fallback
+#
+#     return all_data.get(sheet_name, pd.DataFrame())
 
 #option menu
 from streamlit_option_menu import option_menu
 with st.sidebar:
-        selected=option_menu(
+    selected=option_menu(
         menu_title="MAIN MENU",
         options=["WC Active Customers", "WC Semi-Active Customers", "WC Inactive Customers", "GCM Active Customers", "GCM Semi-Active Customers", "GCM Inactive Customers"],
         icons=["book", "book", "book", "book", "book", "book"],
@@ -184,111 +230,134 @@ def options_select(available_options, selected_options):
 
 def side_filter_selection(df):
     show_more_filters = st.sidebar.checkbox('Show More Filters', key='show_filter')
+
+    branch_opts       = av_options(df, 'Branch')
+    sdealer_opts      = av_options(df, 'Selling_Dealer')
+    stype_opts        = av_options(df, 'Selling_ActionType')
+    vehicle_opts      = av_options(df, 'Vehicles')
+    area_opts         = av_options(df, 'Area')
+
     dealer = st.sidebar.multiselect(
         label='Filter Current Dealer',
-        options=av_options(df, 'Branch'),
-        default=av_options(df, 'Branch')[1:],
+        options=branch_opts,
+        default=branch_opts[1:],
         key="branch_options",
-        on_change=options_select(av_options(df, 'Branch'), 'branch_options'),
+        on_change=options_select,
+        args=(branch_opts, 'branch_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
-        
     )
 
     sell_dealer = st.sidebar.multiselect(
         label='Filter Selling Dealer',
-        options=av_options(df, 'Selling_Dealer'),
-        default=av_options(df, 'Selling_Dealer')[1:],
+        options=sdealer_opts,
+        default=sdealer_opts[1:],
         key="sdealer_options",
-        on_change=options_select(av_options(df, 'Selling_Dealer'), 'sdealer_options'),
+        on_change=options_select,
+        args=(sdealer_opts, 'sdealer_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
     sell_dealer_actiontype = st.sidebar.multiselect(
         label='Filter Selling Dealer New / Used',
-        options=av_options(df, 'Selling_ActionType'),
-        default=av_options(df, 'Selling_ActionType')[1:],
+        options=stype_opts,
+        default=stype_opts[1:],
         key="stype_options",
-        on_change=options_select(av_options(df, 'Selling_ActionType'), 'stype_options'),
+        on_change=options_select,
+        args=(stype_opts, 'stype_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
     vehicle = st.sidebar.multiselect(
         label='Filter Model',
-        options=av_options(df, 'Vehicles'),
-        default=av_options(df, 'Vehicles')[1:],
+        options=vehicle_opts,
+        default=vehicle_opts[1:],
         key="model_options",
-        on_change=options_select(av_options(df, 'Vehicles'), 'model_options'),
+        on_change=options_select,
+        args=(vehicle_opts, 'model_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
-        
     )
 
     area = st.sidebar.multiselect(
         label='Filter Area',
-        options=av_options(df, 'Area'),
-        default=av_options(df, 'Area')[1:],
+        options=area_opts,
+        default=area_opts[1:],
         key="area_options",
-        on_change=options_select(av_options(df, 'Area'), 'area_options'),
+        on_change=options_select,
+        args=(area_opts, 'area_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
+
     df_selection = df.query(
         "Branch==@dealer & Vehicles==@vehicle & Area==@area & Selling_Dealer==@sell_dealer & Selling_ActionType==@sell_dealer_actiontype"
     )
-    
 
     if st.session_state.show_filter:
+        v_age_r_opts     = av_options(df_selection, 'Vehicle_Age_Reg_Date')
+        v_age_p_opts     = av_options(df_selection, 'Vehicle_Age_Plan')
+        age_opts         = av_options(df_selection, 'Age_Group')
+        multi_owner_opts = av_options(df_selection, 'Multiple_Ownership')
+        company_opts     = av_options(df_selection, 'Company_Owned')
+        salesexec_opts   = av_options(df_selection, 'Sales_Executive')
+
         col1, col2, col3, col4, col5, col6 = st.columns(6)
         with col1:
             v_age_r = st.multiselect(
                 label='Vehicle Age (Reg Date)',
-                options=av_options(df_selection, 'Vehicle_Age_Reg_Date'),
-                default=av_options(df_selection, 'Vehicle_Age_Reg_Date')[1:],
+                options=v_age_r_opts,
+                default=v_age_r_opts[1:],
                 key="v_age_r_options",
-                on_change=options_select(av_options(df_selection, 'Vehicle_Age_Reg_Date'), 'v_age_r_options'),
+                on_change=options_select,
+                args=(v_age_r_opts, 'v_age_r_options'),
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col2:
             v_age_p = st.multiselect(
                 label='Vehicle Age (Plan End Date)',
-                options=av_options(df_selection, 'Vehicle_Age_Plan'),
-                default=av_options(df_selection, 'Vehicle_Age_Plan')[1:],
+                options=v_age_p_opts,
+                default=v_age_p_opts[1:],
                 key="v_age_p_options",
-                on_change=options_select(av_options(df_selection, 'Vehicle_Age_Plan'), 'v_age_p_options'),
+                on_change=options_select,
+                args=(v_age_p_opts, 'v_age_p_options'),
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col3:
             age_group = st.multiselect(
                 label='Customer Age Group',
-                options=av_options(df_selection, 'Age_Group'),
-                default=av_options(df_selection, 'Age_Group')[1:],
+                options=age_opts,
+                default=age_opts[1:],
                 key="age_options",
-                on_change=options_select(av_options(df_selection, 'Age_Group'), 'age_options'),
+                on_change=options_select,
+                args=(age_opts, 'age_options'),
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col4:
             multi_owner = st.multiselect(
                 label='Multiple Ownership',
-                options=av_options(df_selection, 'Multiple_Ownership'),
-                default=av_options(df_selection, 'Multiple_Ownership')[1:],
+                options=multi_owner_opts,
+                default=multi_owner_opts[1:],
                 key="multi_owner_options",
-                on_change=options_select(av_options(df_selection, 'Multiple_Ownership'), 'multi_owner_options'),
+                on_change=options_select,
+                args=(multi_owner_opts, 'multi_owner_options'),
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col5:
             company_owned = st.multiselect(
                 label='Company Owned',
-                options=av_options(df_selection, 'Company_Owned'),
-                default=av_options(df_selection, 'Company_Owned')[1:],
+                options=company_opts,
+                default=company_opts[1:],
                 key="company_options",
-                on_change=options_select(av_options(df_selection, 'Company_Owned'), 'company_options'),
+                on_change=options_select,
+                args=(company_opts, 'company_options'),
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
 
         sales_executive = st.multiselect(
             label='Sales Executive',
-            options=av_options(df_selection, 'Sales_Executive'),
-            default=av_options(df_selection, 'Sales_Executive')[1:],
+            options=salesexec_opts,
+            default=salesexec_opts[1:],
             key="salesexec_options",
-            on_change=options_select(av_options(df_selection, 'Sales_Executive'), 'salesexec_options'),
+            on_change=options_select,
+            args=(salesexec_opts, 'salesexec_options'),
             format_func=lambda x: "All" if x == -1 else f"{x}",
         )
 
@@ -314,48 +383,45 @@ def metrics(df):
 def table(df):
     shouldDisplayPivoted = st.checkbox("Pivot Table", key="checked")
 
-    gb = GridOptionsBuilder()
-
-    gb.configure_default_column(
-        resizable=True,
-        filterable=True,
-        sortable=True,
-        editable=False,  
-        )
-
-    gb.configure_column(field="Vehicles", header_name="Vehicle", width=80, rowGroup=shouldDisplayPivoted, sort='asc')
-
-    gb.configure_column(
-        field="Mileage Category",
-        header_name="Mileage Category",
-        tooltipField="Mileage Category",
-        pivot=True,
-    )
-
-    gb.configure_column(
-        field="Branch",
-        header_name="Total",
-        width=100,
-        aggFunc="count",
-        valueFormatter="value.toLocaleString()",
-    )
-
-    gb.configure_grid_options(
-        tooltipShowDelay=0,
-        pivotMode=shouldDisplayPivoted,
-        suppressAggFuncInHeader=True
-    )
-
-    gb.configure_grid_options(
-        autoGroupColumnDef=dict(
-            minWidth=300,
-            pinned="left",
-            cellRendererParams=dict(suppressCount=True)
-        )
-    )
     if st.session_state.checked:
-        go = gb.build()
-        AgGrid(df, gridOptions=go, height=1000, fit_columns_on_grid_load=ColumnsAutoSizeMode.FIT_CONTENTS)
+        pivot_df = pd.crosstab(df['Vehicles'], df['Mileage Category']).reset_index()
+        pivot_df = pivot_df.rename(columns={'Vehicles': 'Group'}).sort_values('Group')
+
+        mileage_cols = [c for c in pivot_df.columns if c != 'Group']
+
+        col_defs = [
+            {
+                "field": "Group",
+                "headerName": "Group",
+                "pinned": "left",
+                "sortable": True,
+                "sort": "asc",
+                "filter": True,
+                "resizable": True,
+                "minWidth": 150,
+            }
+        ]
+        for col in mileage_cols:
+            col_defs.append({
+                "headerName": col,
+                "children": [
+                    {
+                        "field": col,
+                        "headerName": "Total",
+                        "width": 120,
+                        "type": "numericColumn",
+                        "resizable": True,
+                        "sortable": True,
+                    }
+                ],
+            })
+
+        grid_options = {
+            "columnDefs": col_defs,
+            "defaultColDef": {"resizable": True, "sortable": True, "filter": True},
+        }
+
+        AgGrid(pivot_df, gridOptions=grid_options, height=1000, fit_columns_on_grid_load=ColumnsAutoSizeMode.FIT_CONTENTS)
     else:
         shwdata = st.multiselect('Columns To Show :', df.columns, default=['Branch', 'Multiple_Ownership', 'Company', 'Company_Owned', 'Age_Group', 'Suburb', 'Area', 'Last Interaction Type', 'Last Interaction Date', 'Body Number', '1st Section', '2nd Section', '3rd Section', 'Vehicle_Age_Reg_Date', 'Vehicles', 'Model', 'Mileage Category', 'Ownership', 'Customer Type', 'Planned end date', 'Vehicle_Age_Plan', 'Plan'])
         AgGrid(df[shwdata], height=1000)
@@ -405,8 +471,23 @@ def map_data(df, is_gcm='N'):
 def convert_to_csv(df):
     return df.to_csv(index=False).encode('utf-8')
 
+# Clear filter session state when the page changes so stale WC keys don't
+# bleed into GCM views (and vice versa), which would cause queries to return 0 rows.
+if st.session_state.get('current_page') != selected:
+    filter_keys = [
+        'branch_options', 'sdealer_options', 'stype_options',
+        'model_options', 'area_options', 'max_selections',
+        'v_age_r_options', 'v_age_p_options', 'age_options',
+        'multi_owner_options', 'company_options', 'salesexec_options',
+        'show_filter',
+    ]
+    for _key in filter_keys:
+        if _key in st.session_state:
+            del st.session_state[_key]
+    st.session_state['current_page'] = selected
+
 if selected=='WC Active Customers':
-    df = get_data('WA')
+    df = get_data('WA', sheet)
     df_selection = side_filter_selection(df)
     
     metrics(df_selection)
@@ -428,7 +509,7 @@ if selected=='WC Active Customers':
         mime='text/csv'
     )
 elif selected=='WC Semi-Active Customers':
-    df = get_data('WS')
+    df = get_data('WS', sheet)
     df_selection = side_filter_selection(df)
     
     metrics(df_selection)
@@ -450,7 +531,7 @@ elif selected=='WC Semi-Active Customers':
         mime='text/csv'
     )
 elif selected=='WC Inactive Customers':
-    df = get_data('WI')
+    df = get_data('WI', sheet)
     df_selection = side_filter_selection(df)
     metrics(df_selection)
     veiw_filter = st.radio(
@@ -471,7 +552,7 @@ elif selected=='WC Inactive Customers':
         mime='text/csv'
     )
 elif selected=='GCM Active Customers':
-    df = get_data('GA')
+    df = get_data('GA', sheet)
     df_selection = side_filter_selection(df)
     metrics(df_selection)
     veiw_filter = st.radio(
@@ -492,7 +573,7 @@ elif selected=='GCM Active Customers':
         mime='text/csv'
     )
 elif selected=='GCM Semi-Active Customers':
-    df = get_data('GS')
+    df = get_data('GS', sheet)
     df_selection = side_filter_selection(df)
     metrics(df_selection)
     veiw_filter = st.radio(
@@ -513,7 +594,7 @@ elif selected=='GCM Semi-Active Customers':
         mime='text/csv'
     )
 elif selected=='GCM Inactive Customers':
-    df = get_data('GI')
+    df = get_data('GI', sheet)
     df_selection = side_filter_selection(df)
     metrics(df_selection)
     veiw_filter = st.radio(
