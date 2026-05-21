@@ -532,6 +532,7 @@ elif selected=='WC Inactive Customers':
 elif selected=='GCM Active Customers':
     df = get_data('GA', sheet)
     df_selection = side_filter_selection(df)
+    st.write("df.shape:", df.shape, "| df_selection.shape:", df_selection.shape)
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
