@@ -291,19 +291,15 @@ def side_filter_selection(df):
     )
 
     with st.expander("Debug — Filter State", expanded=False):
-        st.write("df rows:", len(df), "| selection rows:", len(df_selection))
-        st.write("_dealer:", _dealer)
-        st.write("_sell_dealer:", _sell_dealer)
-        st.write("_stype:", _stype)
-        st.write("_vehicle:", _vehicle)
-        st.write("_area:", _area)
-        st.write("table_view:", st.session_state.get('table_view'))
-        st.write("raw session state →",
-                 "branch:", st.session_state.get('branch_options'),
-                 "sdealer:", st.session_state.get('sdealer_options'),
-                 "stype:", st.session_state.get('stype_options'),
-                 "model:", st.session_state.get('model_options'),
-                 "area:", st.session_state.get('area_options'))
+        st.write("**Page:**", selected, "| tracked:", st.session_state.get('current_page'), "| table_view:", st.session_state.get('table_view'))
+        st.write("**df rows:**", len(df), "| **selection rows:**", len(df_selection))
+        st.write("**sdealer_opts count:**", len(sdealer_opts), "— available options for Selling Dealer")
+        st.write("**sell_dealer (raw from widget):**", sell_dealer)
+        st.write("**_sell_dealer (effective filter):**", _sell_dealer)
+        st.write("**_dealer:**", _dealer)
+        st.write("**_stype:**", _stype)
+        st.write("**_vehicle:**", _vehicle)
+        st.write("**_area:**", _area)
 
     if st.session_state.show_filter:
         v_age_r_opts     = av_options(df_selection, 'Vehicle_Age_Reg_Date')
