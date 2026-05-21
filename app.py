@@ -237,6 +237,13 @@ def side_filter_selection(df):
     vehicle_opts      = av_options(df, 'Vehicles')
     area_opts         = av_options(df, 'Area')
 
+    def _reset_if_stale(key, valid_opts):
+        if key in st.session_state:
+            valid = set(valid_opts)
+            if not any(v in valid for v in st.session_state[key]):
+                del st.session_state[key]
+
+    _reset_if_stale('branch_options', branch_opts)
     dealer = st.sidebar.multiselect(
         label='Filter Current Dealer',
         options=branch_opts,
@@ -244,10 +251,8 @@ def side_filter_selection(df):
         key="branch_options",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
-    if not dealer:
-        dealer = branch_opts[1:]
-        st.session_state['branch_options'] = dealer
 
+    _reset_if_stale('sdealer_options', sdealer_opts)
     sell_dealer = st.sidebar.multiselect(
         label='Filter Selling Dealer',
         options=sdealer_opts,
@@ -255,10 +260,8 @@ def side_filter_selection(df):
         key="sdealer_options",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
-    if not sell_dealer:
-        sell_dealer = sdealer_opts[1:]
-        st.session_state['sdealer_options'] = sell_dealer
 
+    _reset_if_stale('stype_options', stype_opts)
     sell_dealer_actiontype = st.sidebar.multiselect(
         label='Filter Selling Dealer New / Used',
         options=stype_opts,
@@ -266,10 +269,8 @@ def side_filter_selection(df):
         key="stype_options",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
-    if not sell_dealer_actiontype:
-        sell_dealer_actiontype = stype_opts[1:]
-        st.session_state['stype_options'] = sell_dealer_actiontype
 
+    _reset_if_stale('model_options', vehicle_opts)
     vehicle = st.sidebar.multiselect(
         label='Filter Model',
         options=vehicle_opts,
@@ -277,10 +278,8 @@ def side_filter_selection(df):
         key="model_options",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
-    if not vehicle:
-        vehicle = vehicle_opts[1:]
-        st.session_state['model_options'] = vehicle
 
+    _reset_if_stale('area_options', area_opts)
     area = st.sidebar.multiselect(
         label='Filter Area',
         options=area_opts,
@@ -288,9 +287,6 @@ def side_filter_selection(df):
         key="area_options",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
-    if not area:
-        area = area_opts[1:]
-        st.session_state['area_options'] = area
 
     df_selection = df.query(
         "Branch==@dealer & Vehicles==@vehicle & Area==@area & Selling_Dealer==@sell_dealer & Selling_ActionType==@sell_dealer_actiontype"
