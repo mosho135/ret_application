@@ -359,9 +359,9 @@ def metrics(df):
     style_metric_cards(background_color="#ffffff",border_left_color="#18334C",box_shadow="3px")
 
 def table(df):
-    shouldDisplayPivoted = st.checkbox("Pivot Table", key="checked")
+    table_view = st.radio("Table View", ["Raw Data", "Pivot Table"], horizontal=True, key="table_view")
 
-    if st.session_state.checked:
+    if table_view == "Pivot Table":
         pivot_df = pd.crosstab(df['Vehicles'], df['Mileage Category']).reset_index()
         pivot_df = pivot_df.rename(columns={'Vehicles': 'Group'}).sort_values('Group')
 
@@ -457,7 +457,7 @@ if st.session_state.get('current_page') != selected:
         'model_options', 'area_options', 'max_selections',
         'v_age_r_options', 'v_age_p_options', 'age_options',
         'multi_owner_options', 'company_options', 'salesexec_options',
-        'show_filter',
+        'show_filter', 'checked', 'table_view',
     ]
     for _key in filter_keys:
         if _key in st.session_state:
