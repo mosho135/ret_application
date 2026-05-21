@@ -238,6 +238,8 @@ def side_filter_selection(df):
     vehicle_opts      = av_options(df, 'Vehicles')
     area_opts         = av_options(df, 'Area')
 
+    _pre_sdealer = st.session_state.get('sdealer_options', '__NOT_SET__')
+
     dealer = st.sidebar.multiselect(
         label='Filter Current Dealer',
         options=branch_opts,
@@ -294,12 +296,11 @@ def side_filter_selection(df):
         st.write("**Page:**", selected, "| tracked:", st.session_state.get('current_page'), "| table_view:", st.session_state.get('table_view'))
         st.write("**df rows:**", len(df), "| **selection rows:**", len(df_selection))
         st.write("**sdealer_opts count:**", len(sdealer_opts), "— available options for Selling Dealer")
-        st.write("**sell_dealer (raw from widget):**", sell_dealer)
+        st.write("**sdealer_options in session state BEFORE widget rendered:**", _pre_sdealer if _pre_sdealer == '__NOT_SET__' else f"{len(_pre_sdealer)} values → {_pre_sdealer}")
+        st.write("**sell_dealer (raw from widget, after render):**", f"{len(sell_dealer)} values → {sell_dealer}")
         st.write("**_sell_dealer (effective filter):**", _sell_dealer)
         st.write("**_dealer:**", _dealer)
         st.write("**_stype:**", _stype)
-        st.write("**_vehicle:**", _vehicle)
-        st.write("**_area:**", _area)
 
     if st.session_state.show_filter:
         v_age_r_opts     = av_options(df_selection, 'Vehicle_Age_Reg_Date')
