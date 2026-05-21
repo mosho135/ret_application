@@ -244,6 +244,9 @@ def side_filter_selection(df):
         key="branch_options",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
+    if not dealer:
+        dealer = branch_opts[1:]
+        st.session_state['branch_options'] = dealer
 
     sell_dealer = st.sidebar.multiselect(
         label='Filter Selling Dealer',
@@ -252,6 +255,9 @@ def side_filter_selection(df):
         key="sdealer_options",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
+    if not sell_dealer:
+        sell_dealer = sdealer_opts[1:]
+        st.session_state['sdealer_options'] = sell_dealer
 
     sell_dealer_actiontype = st.sidebar.multiselect(
         label='Filter Selling Dealer New / Used',
@@ -260,6 +266,9 @@ def side_filter_selection(df):
         key="stype_options",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
+    if not sell_dealer_actiontype:
+        sell_dealer_actiontype = stype_opts[1:]
+        st.session_state['stype_options'] = sell_dealer_actiontype
 
     vehicle = st.sidebar.multiselect(
         label='Filter Model',
@@ -268,6 +277,9 @@ def side_filter_selection(df):
         key="model_options",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
+    if not vehicle:
+        vehicle = vehicle_opts[1:]
+        st.session_state['model_options'] = vehicle
 
     area = st.sidebar.multiselect(
         label='Filter Area',
@@ -276,6 +288,9 @@ def side_filter_selection(df):
         key="area_options",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
+    if not area:
+        area = area_opts[1:]
+        st.session_state['area_options'] = area
 
     df_selection = df.query(
         "Branch==@dealer & Vehicles==@vehicle & Area==@area & Selling_Dealer==@sell_dealer & Selling_ActionType==@sell_dealer_actiontype"
@@ -532,7 +547,7 @@ elif selected=='WC Inactive Customers':
 elif selected=='GCM Active Customers':
     df = get_data('GA', sheet)
     df_selection = side_filter_selection(df)
-    st.write("df.shape:", df.shape, "| df_selection.shape:", df_selection.shape)
+    st.write("df:", df.shape, "| selection:", df_selection.shape, "| branch_options:", st.session_state.get('branch_options'))
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
