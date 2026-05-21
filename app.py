@@ -292,12 +292,6 @@ def side_filter_selection(df):
         "Branch==@_dealer & Vehicles==@_vehicle & Area==@_area & Selling_Dealer==@_sell_dealer & Selling_ActionType==@_stype"
     )
 
-    with st.expander("Debug — Filter State", expanded=False):
-        st.write("**Page:**", selected, "| tracked:", st.session_state.get('current_page'), "| table_view:", st.session_state.get('table_view'))
-        st.write("**df rows:**", len(df), "| **selection rows:**", len(df_selection))
-        st.write("**sell_dealer count:**", len(sell_dealer), "| **_sell_dealer count:**", len(_sell_dealer))
-        st.write("**sell_dealer (raw from widget):**", sell_dealer)
-
     if st.session_state.show_filter:
         v_age_r_opts     = av_options(df_selection, 'Vehicle_Age_Reg_Date')
         v_age_p_opts     = av_options(df_selection, 'Vehicle_Age_Plan')
