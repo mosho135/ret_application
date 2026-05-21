@@ -205,9 +205,10 @@ with st.sidebar:
         menu_title="MAIN MENU",
         options=["WC Active Customers", "WC Semi-Active Customers", "WC Inactive Customers", "GCM Active Customers", "GCM Semi-Active Customers", "GCM Inactive Customers"],
         icons=["book", "book", "book", "book", "book", "book"],
-        menu_icon="cast", #option
-        default_index=0, #option
-        orientation="vertical",)
+        menu_icon="cast",
+        default_index=0,
+        orientation="vertical",
+        key="main_menu",)
 
 
 def av_options(df, options):
