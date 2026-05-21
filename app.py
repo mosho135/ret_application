@@ -423,7 +423,7 @@ def table(df):
 
         AgGrid(pivot_df, gridOptions=grid_options, height=1000, fit_columns_on_grid_load=ColumnsAutoSizeMode.FIT_CONTENTS)
     else:
-        shwdata = st.multiselect('Columns To Show :', df.columns, default=['Branch', 'Multiple_Ownership', 'Company', 'Company_Owned', 'Age_Group', 'Suburb', 'Area', 'Last Interaction Type', 'Last Interaction Date', 'Body Number', '1st Section', '2nd Section', '3rd Section', 'Vehicle_Age_Reg_Date', 'Vehicles', 'Model', 'Mileage Category', 'Ownership', 'Customer Type', 'Planned end date', 'Vehicle_Age_Plan', 'Plan'])
+        shwdata = st.multiselect('Columns To Show :', df.columns, default=['Branch', 'Multiple_Ownership', 'Company', 'Company_Owned', 'Age_Group', 'Suburb', 'Area', 'Last Interaction Type', 'Last Interaction Date', 'Body Number', '1st Section', '2nd Section', '3rd Section', 'Vehicle_Age_Reg_Date', 'Vehicles', 'Model', 'Mileage Category', 'Ownership', 'Customer Type', 'Planned end date', 'Vehicle_Age_Plan', 'Plan'], key='columns_to_show')
         AgGrid(df[shwdata], height=1000)
 
 def map_data(df, is_gcm='N'):
@@ -479,7 +479,7 @@ if st.session_state.get('current_page') != selected:
         'model_options', 'area_options', 'max_selections',
         'v_age_r_options', 'v_age_p_options', 'age_options',
         'multi_owner_options', 'company_options', 'salesexec_options',
-        'show_filter',
+        'show_filter', 'view_filter', 'checked', 'columns_to_show',
     ]
     for _key in filter_keys:
         if _key in st.session_state:
@@ -493,7 +493,8 @@ if selected=='WC Active Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -515,7 +516,8 @@ elif selected=='WC Semi-Active Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -536,7 +538,8 @@ elif selected=='WC Inactive Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -557,7 +560,8 @@ elif selected=='GCM Active Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -578,7 +582,8 @@ elif selected=='GCM Semi-Active Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -599,7 +604,8 @@ elif selected=='GCM Inactive Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
