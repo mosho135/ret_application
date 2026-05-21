@@ -230,6 +230,10 @@ def options_select(available_options, selected_options):
             st.session_state["max_selections"] = len(available_options)
 
 def side_filter_selection(df):
+    # Page-specific key suffix prevents session state from one page contaminating another.
+    # e.g. WC Active's dealer list cannot bleed into WC Inactive's filter state.
+    p = selected.replace(' ', '_')
+
     show_more_filters = st.sidebar.checkbox('Show More Filters', key='show_filter')
 
     branch_opts       = av_options(df, 'Branch')
@@ -238,13 +242,11 @@ def side_filter_selection(df):
     vehicle_opts      = av_options(df, 'Vehicles')
     area_opts         = av_options(df, 'Area')
 
-    _pre_sdealer = st.session_state.get('sdealer_options', '__NOT_SET__')
-
     dealer = st.sidebar.multiselect(
         label='Filter Current Dealer',
         options=branch_opts,
         default=branch_opts[1:],
-        key="branch_options",
+        key=f"branch_{p}",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
@@ -252,7 +254,7 @@ def side_filter_selection(df):
         label='Filter Selling Dealer',
         options=sdealer_opts,
         default=sdealer_opts[1:],
-        key="sdealer_options",
+        key=f"sdealer_{p}",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
@@ -260,7 +262,7 @@ def side_filter_selection(df):
         label='Filter Selling Dealer New / Used',
         options=stype_opts,
         default=stype_opts[1:],
-        key="stype_options",
+        key=f"stype_{p}",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
@@ -268,7 +270,7 @@ def side_filter_selection(df):
         label='Filter Model',
         options=vehicle_opts,
         default=vehicle_opts[1:],
-        key="model_options",
+        key=f"model_{p}",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
@@ -276,12 +278,10 @@ def side_filter_selection(df):
         label='Filter Area',
         options=area_opts,
         default=area_opts[1:],
-        key="area_options",
+        key=f"area_{p}",
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
-    # Strip the -1 "All" sentinel and fall back to all options if a filter
-    # ends up empty (e.g. stale session state values dropped by Streamlit).
     _dealer = [v for v in dealer if v != -1] or branch_opts[1:]
     _vehicle = [v for v in vehicle if v != -1] or vehicle_opts[1:]
     _area = [v for v in area if v != -1] or area_opts[1:]
@@ -295,12 +295,8 @@ def side_filter_selection(df):
     with st.expander("Debug — Filter State", expanded=False):
         st.write("**Page:**", selected, "| tracked:", st.session_state.get('current_page'), "| table_view:", st.session_state.get('table_view'))
         st.write("**df rows:**", len(df), "| **selection rows:**", len(df_selection))
-        st.write("**sdealer_opts count:**", len(sdealer_opts), "— available options for Selling Dealer")
-        st.write("**sdealer_options in session state BEFORE widget rendered:**", _pre_sdealer if _pre_sdealer == '__NOT_SET__' else f"{len(_pre_sdealer)} values → {_pre_sdealer}")
-        st.write("**sell_dealer (raw from widget, after render):**", f"{len(sell_dealer)} values → {sell_dealer}")
-        st.write("**_sell_dealer (effective filter):**", _sell_dealer)
-        st.write("**_dealer:**", _dealer)
-        st.write("**_stype:**", _stype)
+        st.write("**sell_dealer count:**", len(sell_dealer), "| **_sell_dealer count:**", len(_sell_dealer))
+        st.write("**sell_dealer (raw from widget):**", sell_dealer)
 
     if st.session_state.show_filter:
         v_age_r_opts     = av_options(df_selection, 'Vehicle_Age_Reg_Date')
@@ -316,7 +312,7 @@ def side_filter_selection(df):
                 label='Vehicle Age (Reg Date)',
                 options=v_age_r_opts,
                 default=v_age_r_opts[1:],
-                key="v_age_r_options",
+                key=f"v_age_r_{p}",
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col2:
@@ -324,7 +320,7 @@ def side_filter_selection(df):
                 label='Vehicle Age (Plan End Date)',
                 options=v_age_p_opts,
                 default=v_age_p_opts[1:],
-                key="v_age_p_options",
+                key=f"v_age_p_{p}",
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col3:
@@ -332,7 +328,7 @@ def side_filter_selection(df):
                 label='Customer Age Group',
                 options=age_opts,
                 default=age_opts[1:],
-                key="age_options",
+                key=f"age_{p}",
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col4:
@@ -340,7 +336,7 @@ def side_filter_selection(df):
                 label='Multiple Ownership',
                 options=multi_owner_opts,
                 default=multi_owner_opts[1:],
-                key="multi_owner_options",
+                key=f"multi_owner_{p}",
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col5:
@@ -348,7 +344,7 @@ def side_filter_selection(df):
                 label='Company Owned',
                 options=company_opts,
                 default=company_opts[1:],
-                key="company_options",
+                key=f"company_{p}",
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
 
@@ -356,7 +352,7 @@ def side_filter_selection(df):
             label='Sales Executive',
             options=salesexec_opts,
             default=salesexec_opts[1:],
-            key="salesexec_options",
+            key=f"salesexec_{p}",
             format_func=lambda x: "All" if x == -1 else f"{x}",
         )
 
@@ -370,7 +366,7 @@ def side_filter_selection(df):
         df_selection = df.query(
             "Branch==@_dealer & Vehicles==@_vehicle & Area==@_area & Selling_Dealer==@_sell_dealer & Selling_ActionType==@_stype & Vehicle_Age_Reg_Date==@_v_age_r & Vehicle_Age_Plan==@_v_age_p & Age_Group==@_age_group & Multiple_Ownership==@_multi_owner & Company_Owned==@_company_owned & Sales_Executive==@_sales_executive"
         )
-    
+
     return df_selection
      
 
@@ -480,14 +476,9 @@ def convert_to_csv(df):
 # Clear filter session state when the page changes so stale WC keys don't
 # bleed into GCM views (and vice versa), which would cause queries to return 0 rows.
 if st.session_state.get('current_page') != selected:
-    filter_keys = [
-        'branch_options', 'sdealer_options', 'stype_options',
-        'model_options', 'area_options', 'max_selections',
-        'v_age_r_options', 'v_age_p_options', 'age_options',
-        'multi_owner_options', 'company_options', 'salesexec_options',
-        'show_filter', 'checked', 'table_view', 'view_filter', 'cols_to_show',
-    ]
-    for _key in filter_keys:
+    # Filter multiselects now use page-specific keys (e.g. sdealer_WC_Inactive_Customers)
+    # so they can't contaminate each other. Only clear shared view-state keys here.
+    for _key in ['max_selections', 'show_filter', 'table_view', 'view_filter', 'cols_to_show']:
         if _key in st.session_state:
             del st.session_state[_key]
     st.session_state['current_page'] = selected
