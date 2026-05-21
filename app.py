@@ -290,6 +290,21 @@ def side_filter_selection(df):
         "Branch==@_dealer & Vehicles==@_vehicle & Area==@_area & Selling_Dealer==@_sell_dealer & Selling_ActionType==@_stype"
     )
 
+    with st.expander("Debug — Filter State", expanded=False):
+        st.write("df rows:", len(df), "| selection rows:", len(df_selection))
+        st.write("_dealer:", _dealer)
+        st.write("_sell_dealer:", _sell_dealer)
+        st.write("_stype:", _stype)
+        st.write("_vehicle:", _vehicle)
+        st.write("_area:", _area)
+        st.write("table_view:", st.session_state.get('table_view'))
+        st.write("raw session state →",
+                 "branch:", st.session_state.get('branch_options'),
+                 "sdealer:", st.session_state.get('sdealer_options'),
+                 "stype:", st.session_state.get('stype_options'),
+                 "model:", st.session_state.get('model_options'),
+                 "area:", st.session_state.get('area_options'))
+
     if st.session_state.show_filter:
         v_age_r_opts     = av_options(df_selection, 'Vehicle_Age_Reg_Date')
         v_age_p_opts     = av_options(df_selection, 'Vehicle_Age_Plan')
@@ -348,8 +363,15 @@ def side_filter_selection(df):
             format_func=lambda x: "All" if x == -1 else f"{x}",
         )
 
+        _v_age_r = [v for v in v_age_r if v != -1] or v_age_r_opts[1:]
+        _v_age_p = [v for v in v_age_p if v != -1] or v_age_p_opts[1:]
+        _age_group = [v for v in age_group if v != -1] or age_opts[1:]
+        _multi_owner = [v for v in multi_owner if v != -1] or multi_owner_opts[1:]
+        _company_owned = [v for v in company_owned if v != -1] or company_opts[1:]
+        _sales_executive = [v for v in sales_executive if v != -1] or salesexec_opts[1:]
+
         df_selection = df.query(
-            "Branch==@dealer & Vehicles==@vehicle & Area==@area & Selling_Dealer==@sell_dealer & Selling_ActionType==@sell_dealer_actiontype & Vehicle_Age_Reg_Date==@v_age_r & Vehicle_Age_Plan==@v_age_p & Age_Group==@age_group & Multiple_Ownership==@multi_owner & Company_Owned==@company_owned & Sales_Executive==@sales_executive"
+            "Branch==@_dealer & Vehicles==@_vehicle & Area==@_area & Selling_Dealer==@_sell_dealer & Selling_ActionType==@_stype & Vehicle_Age_Reg_Date==@_v_age_r & Vehicle_Age_Plan==@_v_age_p & Age_Group==@_age_group & Multiple_Ownership==@_multi_owner & Company_Owned==@_company_owned & Sales_Executive==@_sales_executive"
         )
     
     return df_selection
@@ -410,7 +432,7 @@ def table(df):
 
         AgGrid(pivot_df, gridOptions=grid_options, height=1000, fit_columns_on_grid_load=ColumnsAutoSizeMode.FIT_CONTENTS)
     else:
-        shwdata = st.multiselect('Columns To Show :', df.columns, default=['Branch', 'Multiple_Ownership', 'Company', 'Company_Owned', 'Age_Group', 'Suburb', 'Area', 'Last Interaction Type', 'Last Interaction Date', 'Body Number', '1st Section', '2nd Section', '3rd Section', 'Vehicle_Age_Reg_Date', 'Vehicles', 'Model', 'Mileage Category', 'Ownership', 'Customer Type', 'Planned end date', 'Vehicle_Age_Plan', 'Plan'])
+        shwdata = st.multiselect('Columns To Show :', df.columns, default=['Branch', 'Multiple_Ownership', 'Company', 'Company_Owned', 'Age_Group', 'Suburb', 'Area', 'Last Interaction Type', 'Last Interaction Date', 'Body Number', '1st Section', '2nd Section', '3rd Section', 'Vehicle_Age_Reg_Date', 'Vehicles', 'Model', 'Mileage Category', 'Ownership', 'Customer Type', 'Planned end date', 'Vehicle_Age_Plan', 'Plan'], key='cols_to_show')
         AgGrid(df[shwdata], height=1000)
 
 def map_data(df, is_gcm='N'):
@@ -466,7 +488,7 @@ if st.session_state.get('current_page') != selected:
         'model_options', 'area_options', 'max_selections',
         'v_age_r_options', 'v_age_p_options', 'age_options',
         'multi_owner_options', 'company_options', 'salesexec_options',
-        'show_filter', 'checked', 'table_view',
+        'show_filter', 'checked', 'table_view', 'view_filter', 'cols_to_show',
     ]
     for _key in filter_keys:
         if _key in st.session_state:
@@ -480,7 +502,8 @@ if selected=='WC Active Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -502,7 +525,8 @@ elif selected=='WC Semi-Active Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -523,7 +547,8 @@ elif selected=='WC Inactive Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -541,11 +566,11 @@ elif selected=='WC Inactive Customers':
 elif selected=='GCM Active Customers':
     df = get_data('GA', sheet)
     df_selection = side_filter_selection(df)
-    st.write("df:", df.shape, "| selection:", df_selection.shape, "| branch_options:", st.session_state.get('branch_options'))
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -566,7 +591,8 @@ elif selected=='GCM Semi-Active Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -587,7 +613,8 @@ elif selected=='GCM Inactive Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map']
+        options=['Table', 'Map'],
+        key='view_filter'
     )
     if veiw_filter == 'Table':
         table(df_selection)
