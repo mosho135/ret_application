@@ -242,8 +242,6 @@ def side_filter_selection(df):
         options=branch_opts,
         default=branch_opts[1:],
         key="branch_options",
-        on_change=options_select,
-        args=(branch_opts, 'branch_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
@@ -252,8 +250,6 @@ def side_filter_selection(df):
         options=sdealer_opts,
         default=sdealer_opts[1:],
         key="sdealer_options",
-        on_change=options_select,
-        args=(sdealer_opts, 'sdealer_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
@@ -262,8 +258,6 @@ def side_filter_selection(df):
         options=stype_opts,
         default=stype_opts[1:],
         key="stype_options",
-        on_change=options_select,
-        args=(stype_opts, 'stype_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
@@ -272,8 +266,6 @@ def side_filter_selection(df):
         options=vehicle_opts,
         default=vehicle_opts[1:],
         key="model_options",
-        on_change=options_select,
-        args=(vehicle_opts, 'model_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
@@ -282,8 +274,6 @@ def side_filter_selection(df):
         options=area_opts,
         default=area_opts[1:],
         key="area_options",
-        on_change=options_select,
-        args=(area_opts, 'area_options'),
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
@@ -306,8 +296,6 @@ def side_filter_selection(df):
                 options=v_age_r_opts,
                 default=v_age_r_opts[1:],
                 key="v_age_r_options",
-                on_change=options_select,
-                args=(v_age_r_opts, 'v_age_r_options'),
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col2:
@@ -316,8 +304,6 @@ def side_filter_selection(df):
                 options=v_age_p_opts,
                 default=v_age_p_opts[1:],
                 key="v_age_p_options",
-                on_change=options_select,
-                args=(v_age_p_opts, 'v_age_p_options'),
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col3:
@@ -326,8 +312,6 @@ def side_filter_selection(df):
                 options=age_opts,
                 default=age_opts[1:],
                 key="age_options",
-                on_change=options_select,
-                args=(age_opts, 'age_options'),
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col4:
@@ -336,8 +320,6 @@ def side_filter_selection(df):
                 options=multi_owner_opts,
                 default=multi_owner_opts[1:],
                 key="multi_owner_options",
-                on_change=options_select,
-                args=(multi_owner_opts, 'multi_owner_options'),
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
         with col5:
@@ -346,8 +328,6 @@ def side_filter_selection(df):
                 options=company_opts,
                 default=company_opts[1:],
                 key="company_options",
-                on_change=options_select,
-                args=(company_opts, 'company_options'),
                 format_func=lambda x: "All" if x == -1 else f"{x}",
             )
 
@@ -356,8 +336,6 @@ def side_filter_selection(df):
             options=salesexec_opts,
             default=salesexec_opts[1:],
             key="salesexec_options",
-            on_change=options_select,
-            args=(salesexec_opts, 'salesexec_options'),
             format_func=lambda x: "All" if x == -1 else f"{x}",
         )
 
@@ -423,7 +401,7 @@ def table(df):
 
         AgGrid(pivot_df, gridOptions=grid_options, height=1000, fit_columns_on_grid_load=ColumnsAutoSizeMode.FIT_CONTENTS)
     else:
-        shwdata = st.multiselect('Columns To Show :', df.columns, default=['Branch', 'Multiple_Ownership', 'Company', 'Company_Owned', 'Age_Group', 'Suburb', 'Area', 'Last Interaction Type', 'Last Interaction Date', 'Body Number', '1st Section', '2nd Section', '3rd Section', 'Vehicle_Age_Reg_Date', 'Vehicles', 'Model', 'Mileage Category', 'Ownership', 'Customer Type', 'Planned end date', 'Vehicle_Age_Plan', 'Plan'], key='columns_to_show')
+        shwdata = st.multiselect('Columns To Show :', df.columns, default=['Branch', 'Multiple_Ownership', 'Company', 'Company_Owned', 'Age_Group', 'Suburb', 'Area', 'Last Interaction Type', 'Last Interaction Date', 'Body Number', '1st Section', '2nd Section', '3rd Section', 'Vehicle_Age_Reg_Date', 'Vehicles', 'Model', 'Mileage Category', 'Ownership', 'Customer Type', 'Planned end date', 'Vehicle_Age_Plan', 'Plan'])
         AgGrid(df[shwdata], height=1000)
 
 def map_data(df, is_gcm='N'):
@@ -479,7 +457,7 @@ if st.session_state.get('current_page') != selected:
         'model_options', 'area_options', 'max_selections',
         'v_age_r_options', 'v_age_p_options', 'age_options',
         'multi_owner_options', 'company_options', 'salesexec_options',
-        'show_filter', 'view_filter', 'checked', 'columns_to_show',
+        'show_filter',
     ]
     for _key in filter_keys:
         if _key in st.session_state:
@@ -493,8 +471,7 @@ if selected=='WC Active Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map'],
-        key='view_filter'
+        options=['Table', 'Map']
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -516,8 +493,7 @@ elif selected=='WC Semi-Active Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map'],
-        key='view_filter'
+        options=['Table', 'Map']
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -538,8 +514,7 @@ elif selected=='WC Inactive Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map'],
-        key='view_filter'
+        options=['Table', 'Map']
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -560,8 +535,7 @@ elif selected=='GCM Active Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map'],
-        key='view_filter'
+        options=['Table', 'Map']
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -582,8 +556,7 @@ elif selected=='GCM Semi-Active Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map'],
-        key='view_filter'
+        options=['Table', 'Map']
     )
     if veiw_filter == 'Table':
         table(df_selection)
@@ -604,8 +577,7 @@ elif selected=='GCM Inactive Customers':
     metrics(df_selection)
     veiw_filter = st.radio(
         label='Filter between Views',
-        options=['Table', 'Map'],
-        key='view_filter'
+        options=['Table', 'Map']
     )
     if veiw_filter == 'Table':
         table(df_selection)
