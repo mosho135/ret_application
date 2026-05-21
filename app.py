@@ -237,13 +237,6 @@ def side_filter_selection(df):
     vehicle_opts      = av_options(df, 'Vehicles')
     area_opts         = av_options(df, 'Area')
 
-    def _reset_if_stale(key, valid_opts):
-        if key in st.session_state:
-            valid = set(valid_opts)
-            if not any(v in valid for v in st.session_state[key]):
-                del st.session_state[key]
-
-    _reset_if_stale('branch_options', branch_opts)
     dealer = st.sidebar.multiselect(
         label='Filter Current Dealer',
         options=branch_opts,
@@ -252,7 +245,6 @@ def side_filter_selection(df):
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
-    _reset_if_stale('sdealer_options', sdealer_opts)
     sell_dealer = st.sidebar.multiselect(
         label='Filter Selling Dealer',
         options=sdealer_opts,
@@ -261,7 +253,6 @@ def side_filter_selection(df):
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
-    _reset_if_stale('stype_options', stype_opts)
     sell_dealer_actiontype = st.sidebar.multiselect(
         label='Filter Selling Dealer New / Used',
         options=stype_opts,
@@ -270,7 +261,6 @@ def side_filter_selection(df):
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
-    _reset_if_stale('model_options', vehicle_opts)
     vehicle = st.sidebar.multiselect(
         label='Filter Model',
         options=vehicle_opts,
@@ -279,7 +269,6 @@ def side_filter_selection(df):
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
-    _reset_if_stale('area_options', area_opts)
     area = st.sidebar.multiselect(
         label='Filter Area',
         options=area_opts,
@@ -288,8 +277,16 @@ def side_filter_selection(df):
         format_func=lambda x: "All" if x == -1 else f"{x}",
     )
 
+    # Strip the -1 "All" sentinel and fall back to all options if a filter
+    # ends up empty (e.g. stale session state values dropped by Streamlit).
+    _dealer = [v for v in dealer if v != -1] or branch_opts[1:]
+    _vehicle = [v for v in vehicle if v != -1] or vehicle_opts[1:]
+    _area = [v for v in area if v != -1] or area_opts[1:]
+    _sell_dealer = [v for v in sell_dealer if v != -1] or sdealer_opts[1:]
+    _stype = [v for v in sell_dealer_actiontype if v != -1] or stype_opts[1:]
+
     df_selection = df.query(
-        "Branch==@dealer & Vehicles==@vehicle & Area==@area & Selling_Dealer==@sell_dealer & Selling_ActionType==@sell_dealer_actiontype"
+        "Branch==@_dealer & Vehicles==@_vehicle & Area==@_area & Selling_Dealer==@_sell_dealer & Selling_ActionType==@_stype"
     )
 
     if st.session_state.show_filter:
